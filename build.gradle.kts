@@ -1,53 +1,37 @@
 plugins {
-    kotlin("jvm") version "2.1.10"
+    kotlin("multiplatform") version "2.1.10"
     kotlin("plugin.serialization") version "2.1.10"
-    application
 }
 
 group = "net.perfectdreams.ddgamehard"
 version = "1.0-SNAPSHOT"
 
-val lwjglVersion = "3.3.6"
-val jomlVersion = "1.10.7"
-val lwjglNatives = "natives-windows"
-
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    api("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0-RC")
+kotlin {
+    js(IR) {
+        browser()
+        binaries.executable()
+    }
 
-    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
-
-    implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-assimp")
-    implementation("org.lwjgl", "lwjgl-egl")
-    implementation("org.lwjgl", "lwjgl-glfw")
-    implementation("org.lwjgl", "lwjgl-openal")
-    implementation("org.lwjgl", "lwjgl-opengl")
-    implementation("org.lwjgl", "lwjgl-opengles")
-    implementation("org.lwjgl", "lwjgl-stb")
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-opengles", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
-    implementation("org.joml", "joml", jomlVersion)
-
-    testImplementation(kotlin("test"))
+    sourceSets {
+        val jsMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib-js"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+                // Required for WebGL2 Bindings
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-browser:2025.2.4")
+                implementation(npm("jszip", "3.10.1"))
+                implementation("io.ktor:ktor-client-js:3.0.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0-RC")
+            }
+        }
+    }
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
-}
-
-application {
-    mainClass = "net.perfectdreams.ddgamehard.DDGameHardLauncher"
 }
