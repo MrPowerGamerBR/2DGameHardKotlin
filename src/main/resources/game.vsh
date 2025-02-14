@@ -1,4 +1,4 @@
-#version 430 core
+#version 300 es
 
 layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
 

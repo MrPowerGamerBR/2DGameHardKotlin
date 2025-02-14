@@ -18,13 +18,9 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWVidMode
-import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glUseProgram
-import org.lwjgl.opengl.GL32
-import org.lwjgl.opengl.GL43
+import org.lwjgl.opengles.GLES
+import org.lwjgl.opengles.GLES30.*
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.NULL
@@ -98,12 +94,10 @@ class DDGameHard {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
 
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-        // Enable core profile
-        glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-        glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE)
+        glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API) // This is what ACTUALLY makes it work
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0)
 
         // Create the window
         window = glfwCreateWindow(windowWidth, windowHeight, "2D Game Hard (Kotlin)", NULL, NULL)
@@ -153,7 +147,7 @@ class DDGameHard {
         // Make the OpenGL context current
         glfwMakeContextCurrent(window)
         // Enable v-sync (to disable, use 0)
-        glfwSwapInterval(0)
+        glfwSwapInterval(1)
 
         // Make the window visible
         glfwShowWindow(window)
@@ -165,29 +159,11 @@ class DDGameHard {
         // LWJGL detects the context that is current in the current thread,
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
-        GL.createCapabilities()
+        GLES.createCapabilities()
 
         // Required for transparent textures!
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        GL43.glEnable(GL43.GL_DEBUG_OUTPUT)
-        GL43.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS)
-        GL43.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, length: Int, messagePointer: Long, userParamPointer: Long ->
-            val debugMessage: String = MemoryUtil.memUTF8(messagePointer, length)
-
-            val sourceStr = when (source) {
-                GL43.GL_DEBUG_SOURCE_API -> "API"
-                else -> "Unknown ($source)"
-            }
-            println("[$sourceStr]: $debugMessage")
-
-            try {
-                error("test")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }, MemoryUtil.NULL)
 
         // Set the clear color
         glClearColor(0.8f, 0.0f, 0.0f, 1.0f)
@@ -240,15 +216,15 @@ class DDGameHard {
             val startedProcessingAt = System.nanoTime()
 
             // Clear the default framebuffer (this is not really needed but it is useful when testing effects)
-            GL43.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-            GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, 0)
-            GL43.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            GLES30.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+            GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
+            GLES30.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             fun clearFramebuffer(framebuffer: FramebufferResult) {
                 // Clear the framebuffer
-                GL43.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-                GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebuffer.framebufferObject)
-                GL43.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                GLES30.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+                GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebuffer.framebufferObject)
+                GLES30.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             }
 
             clearFramebuffer(framebufferGame)
@@ -264,7 +240,7 @@ class DDGameHard {
 
             // Listen up PUNK
             // We will first BIND OUR CUSTOM FRAMEBUFFER BECAUSE WE ARE BUILT LIKE THAT FR FR
-            GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+            GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
 
             // The game runs at 20 ticks per second (50ms)
             while (totalElapsedMS >= PHYSICS_TIME) {
@@ -281,7 +257,7 @@ class DDGameHard {
 
             // println("Interpolation Percent: $interpolationPercent")
 
-            GL11.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
+            GLES30.glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
 
             val gameWidth = (windowWidth / 2f)
             val gameHeight = (windowHeight / 2f)
@@ -397,7 +373,7 @@ class DDGameHard {
                     }
 
                     if (entity is Coin) {
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferCoins.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferCoins.framebufferObject)
 
                         drawSprite(
                             programId,
@@ -407,7 +383,7 @@ class DDGameHard {
                             scale
                         )
 
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferOverlay.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferOverlay.framebufferObject)
 
                         drawSprite(
                             programId,
@@ -417,9 +393,9 @@ class DDGameHard {
                             scale
                         )
 
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
                     } else if (entity is Fire) {
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
 
                         // Attempting to animate this using this instead of shaders
                         val originalScale = scale.y
@@ -437,9 +413,9 @@ class DDGameHard {
                             scale
                         )
 
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
                     } else {
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
 
                         drawSprite(
                             programId,
@@ -449,7 +425,7 @@ class DDGameHard {
                             scale
                         )
 
-                        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
+                        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGame.framebufferObject)
                     }
                 }
             }
@@ -475,7 +451,7 @@ class DDGameHard {
             // Now we apply glow to the coins
             fun renderToFramebuffer(sourceTexture: Int, targetFramebuffer: FramebufferResult, targetProgramId: Int) {
                 // THIS IS HARD!
-                GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, targetFramebuffer.framebufferObject)
+                GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, targetFramebuffer.framebufferObject)
                 // First we render the make yellow onto the framebuffer
                 glUseProgram(targetProgramId)
 
@@ -497,7 +473,7 @@ class DDGameHard {
             renderToFramebuffer(framebufferHorizontalBlurCoins.framebufferTexture, framebufferVerticalBlurCoins, blurVerticalProgramId)
 
             // Bind the GUI framebuffer
-            GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferGui.framebufferObject)
+            GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferGui.framebufferObject)
 
             glUseProgram(textProgramId)
             setOrthographicProjectionBecauseImLazy(textProgramId)
@@ -518,7 +494,7 @@ class DDGameHard {
             // drawCharacter(textProgramId, vao, fontImage, Vector3f(0f, 0f, 0f), Vector2f(128f, 128f), charactersUV['B']!!)
 
             // Now we UNBIND the framebuffer
-            GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, 0)
+            GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
 
             glUseProgram(programId)
             setOrthographicProjectionBecauseImLazy(programId)
@@ -584,7 +560,7 @@ class DDGameHard {
             1.0f, 0.0f, 1.0f, 0.0f
         )
 
-        val quadVAO = GL32.glGenVertexArrays()
+        val quadVAO = GLES30.glGenVertexArrays()
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
@@ -613,7 +589,7 @@ class DDGameHard {
             1.0f, 0.0f, 1.0f, 1.0f, // Top Right Point
         )
 
-        val quadVAO = GL32.glGenVertexArrays()
+        val quadVAO = GLES30.glGenVertexArrays()
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
@@ -642,7 +618,7 @@ class DDGameHard {
             1.0f, 0.0f, 1.0f, 0.0f
         )
 
-        val quadVAO = GL32.glGenVertexArrays()
+        val quadVAO = GLES30.glGenVertexArrays()
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
@@ -725,22 +701,22 @@ class DDGameHard {
      * Creates a framebuffer
      */
     fun createFramebuffer(width: Int, height: Int): FramebufferResult {
-        val framebufferObject = GL43.glGenFramebuffers()
+        val framebufferObject = GLES30.glGenFramebuffers()
         // You NEED to bind the framebuffer due to our future glCheckFramebufferStatus checks
-        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, framebufferObject)
+        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebufferObject)
 
-        val framebufferTexture = GL43.glGenTextures()
-        GL43.glBindTexture(GL43.GL_TEXTURE_2D, framebufferTexture)
-        GL43.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
-        GL43.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        GL43.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        GL43.glFramebufferTexture2D(GL43.GL_FRAMEBUFFER, GL43.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0)
+        val framebufferTexture = GLES30.glGenTextures()
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, framebufferTexture)
+        GLES30.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL)
+        GLES30.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        GLES30.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        GLES30.glFramebufferTexture2D(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0)
 
-        if (GL43.glCheckFramebufferStatus(GL43.GL_FRAMEBUFFER) != GL43.GL_FRAMEBUFFER_COMPLETE)
+        if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE)
             error("Framebuffer is not complete!")
 
         // Remove bound FB
-        GL43.glBindFramebuffer(GL43.GL_FRAMEBUFFER, 0)
+        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
 
         return FramebufferResult(framebufferObject, framebufferTexture)
     }

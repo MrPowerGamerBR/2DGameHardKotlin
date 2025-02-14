@@ -1,7 +1,7 @@
 package net.perfectdreams.ddgamehard
 
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengles.GLES30
+import org.lwjgl.opengles.GLES30.*
 
 class ShaderManager {
     /**
@@ -15,9 +15,11 @@ class ShaderManager {
         val fragmentShaderCode = ShaderManager::class.java.getResource("/$fragmentShaderFileName").readText(Charsets.UTF_8)
 
         // Compile Vertex Shader
+        println("Compiling shader $vertexShaderFileName...")
         checkAndCompile(vertexShaderId, vertexShaderCode)
 
         // Compile Fragment Shader
+        println("Compiling shader $fragmentShaderFileName...")
         checkAndCompile(fragmentShaderId, fragmentShaderCode)
 
         val programId = glCreateProgram()
@@ -50,8 +52,8 @@ class ShaderManager {
         glCompileShader(shaderId)
 
         // Check Shader
-        val result = GL20.glGetShaderi(shaderId, GL_COMPILE_STATUS)
-        val infoLog = GL20.glGetShaderInfoLog(shaderId, GL_INFO_LOG_LENGTH)
+        val result = GLES30.glGetShaderi(shaderId, GL_COMPILE_STATUS)
+        val infoLog = GLES30.glGetShaderInfoLog(shaderId, GL_INFO_LOG_LENGTH)
 
         // YES DON'T FORGET THAT WE NEED TO USE GL_TRUE!!
         // I was checking using == 0 and of course that doesn't work because that means FALSE (i think)

@@ -1,4 +1,5 @@
-#version 430 core
+#version 300 es
+precision highp float;
 
 in vec2 TexCoords;
 out vec4 color;
@@ -37,7 +38,7 @@ void main() {
         // Calculate the pulsation factor using a sine wave
         float pulsation = sin(fTime * 4.0) * 0.5 + 0.5; // Oscillates between 0 and 1
 
-        if (newColor.r == 0 && newColor.g == 0 && newColor.g == 0) {
+        if (newColor.r == 0.0f && newColor.g == 0.0f && newColor.g == 0.0f) {
             color = newColor;
         } else {
             vec3 rgb = HSVtoRGB(vec3(hsv.r, hsv.g, (hsv.b + (pulsation * 0.7f))));

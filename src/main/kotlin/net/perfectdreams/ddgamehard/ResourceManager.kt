@@ -1,6 +1,6 @@
 package net.perfectdreams.ddgamehard
 
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengles.GLES30.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack.stackPush
 import java.nio.ByteBuffer
