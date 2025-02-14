@@ -20,7 +20,7 @@ By the way, the name of the project is `DDGameHard` because packages and classes
 
 ## OpenGL ES 3.0 and WebGL2 Ports
 
-Just for fun, I also made a [OpenGL ES 3.0 port](/tree/opengles) and a [WebGL2 Port](/tree/webgl2)! Sadly they don't have their logic shared between each port... But that's not impossible to do!
+Just for fun, I also made a [OpenGL ES 3.0 port](https://github.com/MrPowerGamerBR/2DGameHardKotlin/tree/opengles) and a [WebGL2 Port](https://github.com/MrPowerGamerBR/2DGameHardKotlin/tree/webgl2)! Sadly they don't have their logic shared between each port... But that's not impossible to do!
 ## Screenshots
 
 <p align="center">
