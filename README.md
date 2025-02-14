@@ -18,6 +18,9 @@ Now, that doesn't mean I didn't get stuck debugging some stupid things, but the 
 
 By the way, the name of the project is `DDGameHard` because packages and classes can't start with numbers, whoops!
 
+## OpenGL ES 3.0 and WebGL2 Ports
+
+Just for fun, I also made a [OpenGL ES 3.0 port](/tree/opengles) and a [WebGL2 Port](/tree/webgl2)! Sadly they don't have their logic shared between each port... But that's not impossible to do!
 ## Screenshots
 
 <p align="center">
